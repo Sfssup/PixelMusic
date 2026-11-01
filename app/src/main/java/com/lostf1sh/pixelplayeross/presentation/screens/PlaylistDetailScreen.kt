@@ -918,6 +918,7 @@ fun PlaylistDetailScreen(
                     }
                 }
                 // One segmented group: 4dp apart, only the group's outer corners round.
+                val optionCount = 4
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -951,7 +952,6 @@ fun PlaylistDetailScreen(
                             navController.navigateSafely(Screen.EditTransition.createRoute(playlistId))
                         }
                     )
-                    val optionCount = 4
                     PlaylistActionItem(
                         icon = painterResource(R.drawable.rounded_attach_file_24),
                         label = exportPlaylistLabel,
