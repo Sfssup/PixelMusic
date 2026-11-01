@@ -341,7 +341,7 @@ fun AlbumDetailScreen(
                     heroStartPadding = 16.dp,
                     collapsedBarBottom = minTopBarHeight,
                     hasBarSubtitle = true,
-                    // The bar keeps the download action on the right when the album has cloud songs.
+                    // Keep the title aligned with the local-only top bar.
                     collapsedTitleEndPadding = 24.dp,
                     titleStyle = heroTitleStyle
                 )
@@ -828,7 +828,6 @@ private fun CollapsingAlbumTopBar(
     headerImageRequestSize: Size,
     onHeaderArtworkState: ((AsyncImagePainter.State) -> Unit)? = null,
     onBackPressed: () -> Unit,
-    allDownloaded: Boolean,
     onPlayClick: () -> Unit
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
