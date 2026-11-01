@@ -124,7 +124,10 @@ class NavidromeRepository @Inject constructor(
                 prefs.edit { putString(KEY_AUTH_METHOD, method.name) }
             }
         }
-        initFromSavedCredentials()
+        // Remove legacy server credentials and prevent this fork from restoring remote sessions.
+        prefs.edit().clear().apply()
+        api.clearCredentials()
+        _isLoggedInFlow.value = false
     }
 
     /**
@@ -187,6 +190,7 @@ class NavidromeRepository @Inject constructor(
      * @return Result with username on success, error on failure
      */
     suspend fun login(serverUrl: String, username: String, password: String): Result<String> {
+        return Result.failure(UnsupportedOperationException("Navidrome/Subsonic is removed in this offline-only build"))
         return withContext(Dispatchers.IO) {
             try {
                 Timber.d("$TAG: Attempting login to $serverUrl as $username")
