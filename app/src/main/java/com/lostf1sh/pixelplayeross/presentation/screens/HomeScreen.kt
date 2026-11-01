@@ -103,13 +103,11 @@ import com.lostf1sh.pixelplayeross.presentation.model.withUpdatedSongs
 import com.lostf1sh.pixelplayeross.presentation.model.withoutSong
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.PlayingEqIcon
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
-import com.lostf1sh.pixelplayeross.presentation.components.StreamingProviderSheet
 import com.lostf1sh.pixelplayeross.presentation.recap.RecapHomeCard
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.RecapEntryViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.SettingsViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StatsViewModel
-import com.lostf1sh.pixelplayeross.presentation.viewmodel.StreamingProviderLoginViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.sharedPlayerViewModel
 import com.lostf1sh.pixelplayeross.ui.theme.ExpTitleTypography
 import kotlinx.collections.immutable.persistentListOf
@@ -136,7 +134,6 @@ fun HomeScreen(
     paddingValuesParent: PaddingValues,
     playerViewModel: PlayerViewModel = sharedPlayerViewModel(),
     settingsViewModel: SettingsViewModel = hiltViewModel(),
-    streamingLoginViewModel: StreamingProviderLoginViewModel = hiltViewModel(),
     onOpenSidebar: () -> Unit
 ) {
     val context = LocalContext.current
@@ -260,7 +257,6 @@ fun HomeScreen(
     var showOptionsBottomSheet by remember { mutableStateOf(false) }
     var showChangelogBottomSheet by remember { mutableStateOf(false) }
     var showBetaInfoBottomSheet by remember { mutableStateOf(false) }
-    var showStreamingProviderSheet by remember { mutableStateOf(false) }
     var recentSongForOptions by remember { mutableStateOf<Song?>(null) }
     val sheetState = rememberModalSheetState()
     val betaSheetState = rememberModalSheetState()
@@ -352,9 +348,6 @@ fun HomeScreen(
                     },
                     onBetaClick = {
                         showBetaInfoBottomSheet = true
-                    },
-                    onStreamingClick = {
-                          showStreamingProviderSheet = true
                     },
                     onMenuClick = onOpenSidebar,
                     isScrolled = isScrolledPastThreshold.value
@@ -596,21 +589,6 @@ fun HomeScreen(
         ) {
             BetaInfoBottomSheet()
         }
-    }
-    if (showStreamingProviderSheet) {
-        val isNavidromeLoggedIn by streamingLoginViewModel.isNavidromeLoggedIn.collectAsStateWithLifecycle()
-        val isJellyfinLoggedIn by streamingLoginViewModel.isJellyfinLoggedIn.collectAsStateWithLifecycle()
-        StreamingProviderSheet(
-            onDismissRequest = { showStreamingProviderSheet = false },
-            isNavidromeLoggedIn = isNavidromeLoggedIn,
-            onNavigateToNavidromeDashboard = {
-                navController.navigateSafely(Screen.NavidromeDashboard.route)
-            },
-            isJellyfinLoggedIn = isJellyfinLoggedIn,
-            onNavigateToJellyfinDashboard = {
-                navController.navigateSafely(Screen.JellyfinDashboard.route)
-            }
-        )
     }
     recentSongForOptions?.let { song ->
         RecentlyPlayedSongOptionsSheet(
