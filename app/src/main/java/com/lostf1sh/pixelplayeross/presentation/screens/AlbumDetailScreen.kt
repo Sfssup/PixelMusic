@@ -40,8 +40,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.Shuffle
-import androidx.compose.material.icons.rounded.CloudDownload
-import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -217,12 +215,6 @@ fun AlbumDetailScreen(
                 val album = uiState.album!!
                 val songs = uiState.songs
                 val immutableSongs = remember(songs) { songs.toImmutableList() }
-                val cloudSongs = remember(songs) {
-                    CloudOfflineRepository.downloadCandidates(songs)
-                }
-                val allCloudSongsDownloaded = remember(cloudSongs, completedOfflineUris) {
-                    cloudSongs.isNotEmpty() && cloudSongs.all { it.contentUriString in completedOfflineUris }
-                }
                 val songsByDisc = remember(songs) {
                     songs.groupBy { it.discNumber ?: 1 }
                 }
@@ -337,7 +329,6 @@ fun AlbumDetailScreen(
                         }
                     )
                 }
-                val showDownloadAction = cloudSongs.isNotEmpty()
                 val heroDock = rememberDetailHeroDock(
                     heroTopPx = {
                         if (lazyListState.firstVisibleItemIndex == 0) {
@@ -353,7 +344,7 @@ fun AlbumDetailScreen(
                     collapsedBarBottom = minTopBarHeight,
                     hasBarSubtitle = true,
                     // The bar keeps the download action on the right when the album has cloud songs.
-                    collapsedTitleEndPadding = if (showDownloadAction) 88.dp else 24.dp,
+                    collapsedTitleEndPadding = 24.dp,
                     titleStyle = heroTitleStyle
                 )
 
@@ -439,10 +430,6 @@ fun AlbumDetailScreen(
                         targetValue = if (showScrollBar) 8.dp else 0.dp,
                         label = "albumScrollbarInset"
                     )
-                    val onDownloadClick: () -> Unit = {
-                        if (allCloudSongsDownloaded) viewModel.removeAlbumDownloads(cloudSongs)
-                        else viewModel.downloadAlbum(cloudSongs)
-                    }
 
                     // Artwork + gradient sit behind the list so the hero can ride up over the
                     // lower part of the image; only the bar (back button, collapsed title,
@@ -555,9 +542,6 @@ fun AlbumDetailScreen(
                             containerAlpha = maxOf(barContainerAlpha, heroDock.barContainerAlpha),
                             headerHeight = currentTopBarHeightDp,
                             onBackPressed = { navController.popBackStack() },
-                            showDownloadAction = showDownloadAction,
-                            allDownloaded = allCloudSongsDownloaded,
-                            onDownloadClick = onDownloadClick
                         )
                     } else {
                         CollapsingAlbumTopBar(
@@ -572,9 +556,6 @@ fun AlbumDetailScreen(
                                 }
                             },
                             onBackPressed = { navController.popBackStack() },
-                            showDownloadAction = showDownloadAction,
-                            allDownloaded = allCloudSongsDownloaded,
-                            onDownloadClick = onDownloadClick,
                             onPlayClick = {
                                 if (songs.isNotEmpty()) {
                                     val randomSong = songs.random()
@@ -771,9 +752,6 @@ private fun SharedAlbumTopBarProbe(
     containerAlpha: Float,
     headerHeight: Dp,
     onBackPressed: () -> Unit,
-    showDownloadAction: Boolean,
-    allDownloaded: Boolean,
-    onDownloadClick: () -> Unit,
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
     val statusBarColor =
@@ -804,7 +782,7 @@ private fun SharedAlbumTopBarProbe(
                 .align(Alignment.TopCenter)
         )
 
-        val titleEndPadding = if (showDownloadAction) 88.dp else 24.dp
+        val titleEndPadding = 24.dp
         CollapsibleCommonTopBar(
             title = album.title,
             subtitle = "${album.artist} • ${formatSongCount(songsCount)}",
@@ -837,23 +815,6 @@ private fun SharedAlbumTopBarProbe(
             fadeSubtitleOnCollapse = false,
             syncStatusBarWithContainer = false,
             actions = {
-                if (showDownloadAction) {
-                    Box(modifier = Modifier.padding(end = 12.dp, top = 4.dp)) {
-                        FilledIconButton(
-                            onClick = onDownloadClick,
-                            colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                            )
-                        ) {
-                            Icon(
-                                imageVector = if (allDownloaded) Icons.Rounded.CloudDone else Icons.Rounded.CloudDownload,
-                                contentDescription = stringResource(
-                                    if (allDownloaded) R.string.cloud_album_remove_downloads else R.string.cloud_album_download
-                                )
-                            )
-                        }
-                    }
-                }
             }
         )
     }
@@ -974,24 +935,6 @@ private fun CollapsingAlbumTopBar(
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.auth_cd_back))
                 }
 
-                if (showDownloadAction) {
-                    FilledIconButton(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(end = 12.dp, top = 4.dp),
-                        onClick = onDownloadClick,
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        )
-                    ) {
-                        Icon(
-                            imageVector = if (allDownloaded) Icons.Rounded.CloudDone else Icons.Rounded.CloudDownload,
-                            contentDescription = stringResource(
-                                if (allDownloaded) R.string.cloud_album_remove_downloads else R.string.cloud_album_download
-                            )
-                        )
-                    }
-                }
 
                 Box(
                     modifier = Modifier
