@@ -107,7 +107,10 @@ class JellyfinRepository @Inject constructor(
     val isLoggedInFlow: StateFlow<Boolean> = _isLoggedInFlow.asStateFlow()
 
     init {
-        initFromSavedCredentials()
+        // Remove legacy server credentials and prevent this fork from restoring remote sessions.
+        prefs.edit().clear().apply()
+        api.clearCredentials()
+        _isLoggedInFlow.value = false
     }
 
     private fun initFromSavedCredentials() {
@@ -172,6 +175,7 @@ class JellyfinRepository @Inject constructor(
         get() = prefs.getString(KEY_USERNAME, null)
 
     suspend fun login(serverUrl: String, username: String, password: String): Result<String> {
+        return Result.failure(UnsupportedOperationException("Jellyfin is removed in this offline-only build"))
         return withContext(Dispatchers.IO) {
             try {
                 Timber.d("$TAG: Attempting login to $serverUrl as $username")
