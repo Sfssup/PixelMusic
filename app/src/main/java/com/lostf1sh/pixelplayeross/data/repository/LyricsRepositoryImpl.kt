@@ -218,8 +218,11 @@ class LyricsRepositoryImpl @Inject constructor(
 
     private val gson = Gson()
 
-    private suspend fun isExternalLyricsEnabled(): Boolean =
-        userPreferencesRepository.externalLyricsEnabledFlow.first()
+    /**
+     * This fork is intentionally offline-only: lyric lookup is limited to embedded metadata,
+     * adjacent LRC/TXT files and lyrics already stored on the device.
+     */
+    private suspend fun isExternalLyricsEnabled(): Boolean = false
 
     /**
      * Executes multiple remote search strategies in parallel and returns the first non-empty result set.
