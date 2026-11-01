@@ -97,7 +97,6 @@ import coil.compose.AsyncImagePainter
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Album
-import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.presentation.components.CollapsibleCommonTopBar
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
@@ -138,7 +137,6 @@ fun AlbumDetailScreen(
     }
     val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
-    val completedOfflineUris by viewModel.completedOfflineUris.collectAsStateWithLifecycle()
     val allArtists by playerViewModel.artistsFlow.collectAsStateWithLifecycle()
     var showAlbumPlaylistSheet by remember { mutableStateOf(false) }
 
@@ -830,9 +828,7 @@ private fun CollapsingAlbumTopBar(
     headerImageRequestSize: Size,
     onHeaderArtworkState: ((AsyncImagePainter.State) -> Unit)? = null,
     onBackPressed: () -> Unit,
-    showDownloadAction: Boolean,
     allDownloaded: Boolean,
-    onDownloadClick: () -> Unit,
     onPlayClick: () -> Unit
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
