@@ -14,7 +14,7 @@ import timber.log.Timber
 class WidgetUpdateReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != "com.lostf1sh.pixelplayeross.ACTION_WIDGET_UPDATE_PLAYBACK_STATE") return
+        if (intent.action != "com.sfssup.pixelmusic.ACTION_WIDGET_UPDATE_PLAYBACK_STATE") return
 
         val pendingResult = goAsync()
         val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
