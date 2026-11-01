@@ -69,9 +69,18 @@ class ListenBrainzRepository @Inject constructor(
     val accountState: StateFlow<ListenBrainzAccountState> = _accountState.asStateFlow()
 
     init {
-        endpoint.setCustom(
-            prefs.getString(KEY_SERVER_URL, null)?.let(ListenBrainzEndpoint::parseBaseUrl)
-        )
+        // This fork has no ListenBrainz integration. Remove previously stored credentials and
+        // cancel any queued submissions so an upgrade cannot continue background scrobbling.
+        prefs.edit {
+            remove(KEY_TOKEN)
+            remove(KEY_USER_NAME)
+            remove(KEY_AUTH_INVALID)
+            remove(KEY_SERVER_URL)
+        }
+        cachedToken = null
+        endpoint.setCustom(null)
+        _accountState.value = ListenBrainzAccountState()
+        workManager.cancelUniqueWork(ScrobbleFlushWorker.WORK_NAME)
     }
 
     val pendingListenCount = listenBrainzDao.countFlow()
@@ -102,19 +111,20 @@ class ListenBrainzRepository @Inject constructor(
         }
     }
 
-    fun hasToken(): Boolean = cachedToken != null
+    fun hasToken(): Boolean = false
 
     /**
      * True when a token is stored and not known to be invalid. Gate outbound requests on this;
      * [hasToken] alone only decides whether listens should still be collected into the queue.
      */
-    fun isAuthorized(): Boolean = cachedToken != null && !_accountState.value.needsReauth
+    fun isAuthorized(): Boolean = false
 
     /**
      * Inserts under the same lock [disconnect] takes, so a listen admitted before a disconnect
      * can never land in the queue after consent was revoked. Returns false when disconnected.
      */
     suspend fun enqueueListen(listen: ListenBrainzPendingListenEntity): Boolean {
+        return false
         return queueMutex.withLock {
             if (cachedToken == null) return@withLock false
             listenBrainzDao.insert(listen)
@@ -134,6 +144,7 @@ class ListenBrainzRepository @Inject constructor(
      * server (self-hosted ListenBrainz, Maloja, …). Returns the user name on success.
      */
     suspend fun connect(token: String, serverUrl: String? = null): Result<String> {
+        return Result.failure(UnsupportedOperationException("ListenBrainz is disabled in this offline-only build"))
         val trimmed = token.trim()
         if (trimmed.isEmpty()) return Result.failure(IllegalArgumentException("Empty token"))
 
@@ -207,6 +218,7 @@ class ListenBrainzRepository @Inject constructor(
      * hides the stats instead of surfacing an error.
      */
     suspend fun fetchProfileStats(): ListenBrainzProfileStats? {
+        return null
         val token = cachedToken ?: return null
         val userName = _accountState.value.userName?.takeIf { it.isNotBlank() } ?: return null
         val auth = authHeader(token)
@@ -223,6 +235,7 @@ class ListenBrainzRepository @Inject constructor(
     }
 
     suspend fun submitListens(listens: List<ListenBrainzPendingListenEntity>): ListenBrainzSubmitResult {
+        return ListenBrainzSubmitResult.AuthFailed
         val token = cachedToken ?: return ListenBrainzSubmitResult.AuthFailed
         val submission = ListenBrainzSubmission(
             listenType = ListenBrainzSubmission.TYPE_IMPORT,
@@ -238,6 +251,7 @@ class ListenBrainzRepository @Inject constructor(
         durationMs: Long?,
         recordingMbid: String?
     ): ListenBrainzSubmitResult {
+        return ListenBrainzSubmitResult.AuthFailed
         val token = cachedToken ?: return ListenBrainzSubmitResult.AuthFailed
         val submission = ListenBrainzSubmission(
             listenType = ListenBrainzSubmission.TYPE_PLAYING_NOW,
@@ -282,20 +296,12 @@ class ListenBrainzRepository @Inject constructor(
     }
 
     fun scheduleFlush() {
-        workManager.enqueueUniqueWork(
-            ScrobbleFlushWorker.WORK_NAME,
-            ExistingWorkPolicy.KEEP,
-            ScrobbleFlushWorker.request()
-        )
+        workManager.cancelUniqueWork(ScrobbleFlushWorker.WORK_NAME)
     }
 
     /** Chains the next flush attempt no earlier than a server-directed retry window. */
     fun scheduleFlushAfter(delaySeconds: Long) {
-        workManager.enqueueUniqueWork(
-            ScrobbleFlushWorker.WORK_NAME,
-            ExistingWorkPolicy.APPEND_OR_REPLACE,
-            ScrobbleFlushWorker.request(initialDelaySeconds = delaySeconds)
-        )
+        workManager.cancelUniqueWork(ScrobbleFlushWorker.WORK_NAME)
     }
 
     private fun authHeader(token: String) = "Token $token"
