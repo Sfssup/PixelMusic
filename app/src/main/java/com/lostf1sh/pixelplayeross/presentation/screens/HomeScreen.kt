@@ -88,6 +88,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.BetaInfoBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.ChangelogBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.DailyMixSection
 import com.lostf1sh.pixelplayeross.presentation.components.HomeGradientTopBar
+import com.lostf1sh.pixelplayeross.presentation.components.GlassSurface
 import com.lostf1sh.pixelplayeross.presentation.components.HomeOptionsBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.components.RecentlyPlayedSection
@@ -529,10 +530,16 @@ fun HomeScreen(
                     key = "listening_stats_preview",
                     contentType = "listening_stats_preview"
                 ) {
-                    StatsOverviewCard(
-                        state = homeStatsOverviewState,
-                        onClick = { navController.navigateSafely(Screen.Stats.route) }
-                    )
+                    GlassSurface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        StatsOverviewCard(
+                            state = homeStatsOverviewState,
+                            onClick = { navController.navigateSafely(Screen.Stats.route) }
+                        )
+                    }
                 }
             }
         }
