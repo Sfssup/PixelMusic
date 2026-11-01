@@ -92,19 +92,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.listenbrainz.ListenBrainzProfileStats
-import com.lostf1sh.pixelplayeross.presentation.components.CollapsibleCommonTopBar
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.jellyfin.auth.JellyfinLoginActivity
 import com.lostf1sh.pixelplayeross.presentation.navidrome.auth.NavidromeLoginActivity
-import com.lostf1sh.pixelplayeross.presentation.viewmodel.AccountsViewModel
-import com.lostf1sh.pixelplayeross.presentation.viewmodel.ExternalAccountUiModel
-import com.lostf1sh.pixelplayeross.presentation.viewmodel.ExternalServiceAccount
-import com.lostf1sh.pixelplayeross.presentation.viewmodel.ListenBrainzConnectState
-import com.lostf1sh.pixelplayeross.presentation.viewmodel.ListenBrainzStatsUiState
-import com.lostf1sh.pixelplayeross.presentation.viewmodel.ListenBrainzUiModel
 import java.text.NumberFormat
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -115,6 +107,31 @@ import kotlinx.collections.immutable.ImmutableList
 fun AccountsScreen(
     onBackClick: () -> Unit,
     onOpenNavidromeDashboard: () -> Unit = {},
+    onOpenJellyfinDashboard: () -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Offline-only player",
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Online music accounts have been removed. Your library, playlists, lyrics files and playback stay on this device.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        TextButton(onClick = onBackClick) {
+            Text("Back")
+        }
+    }
+},
     onOpenJellyfinDashboard: () -> Unit = {},
     viewModel: AccountsViewModel = hiltViewModel()
 ) {
