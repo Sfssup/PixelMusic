@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import com.lostf1sh.pixelplayeross.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,18 +31,18 @@ fun AccountsScreen(onBackClick: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Offline-only player",
+                    text = stringResource(R.string.accounts_offline_title),
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Online music accounts have been removed. Your library, playlists, lyrics files and playback stay on this device.",
+                    text = stringResource(R.string.accounts_offline_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 TextButton(onClick = onBackClick) {
-                    Text("Back")
+                    Text(stringResource(R.string.accounts_back))
                 }
             }
         }
