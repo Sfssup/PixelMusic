@@ -1,6 +1,17 @@
 name: PR Build
 
 on:
+  push:
+    branches:
+      - pure-local-glass
+    # Build the dedicated offline-player branch on every code update.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "assets/**"
+      - "fastlane/**"
+      - "metadata/**"
+      - "LICENSE"
   pull_request:
     branches:
       - main
