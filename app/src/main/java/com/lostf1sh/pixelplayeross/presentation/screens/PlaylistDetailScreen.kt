@@ -128,6 +128,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
 import com.lostf1sh.pixelplayeross.presentation.components.animatedScrollbarInset
 import com.lostf1sh.pixelplayeross.ui.theme.LocalShowScrollbar
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
+import com.lostf1sh.pixelplayeross.presentation.components.GlassSurface
 import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.TightWrapText
 import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupiedHeight
@@ -887,11 +888,15 @@ fun PlaylistDetailScreen(
         ModalBottomSheet(
             onDismissRequest = { showPlaylistOptionsSheet = false },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = Color.Transparent,
             tonalElevation = 4.dp,
         ) {
-            // Scrolls so Export stays reachable in landscape and at large font scales.
-            Column(
+            GlassSurface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+            ) {
+                // Scrolls so Export stays reachable in landscape and at large font scales.
+                Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
@@ -963,6 +968,7 @@ fun PlaylistDetailScreen(
                             m3uExportLauncher.launch("$sanitizedName.m3u")
                         }
                     )
+                }
                 }
             }
         }
