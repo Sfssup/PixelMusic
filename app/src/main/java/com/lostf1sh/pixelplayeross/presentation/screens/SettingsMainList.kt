@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material3.ColorScheme
@@ -88,13 +87,6 @@ internal sealed interface MainSettingsEntry {
             iconTone = SettingsIconTone.SECONDARY,
             route = Screen.LyricsSettings.createRoute()
         ),
-        DOWNLOADS(
-            titleRes = R.string.cloud_downloads_title,
-            subtitleRes = R.string.cloud_downloads_settings_subtitle,
-            icon = Icons.Rounded.CloudDownload,
-            iconTone = SettingsIconTone.PRIMARY,
-            route = Screen.CloudDownloads.route
-        ),
         ACCOUNTS(
             titleRes = R.string.settings_accounts_row_title,
             subtitleRes = R.string.settings_accounts_row_subtitle,
@@ -113,8 +105,8 @@ internal sealed interface MainSettingsEntry {
 }
 
 /**
- * Every row of the main Settings list, in display order. Row shapes and the gaps between rows
- * are derived from this list, so adding a row here cannot leave the group outline out of step.
+ * Every row of the local Settings list, in display order. Row shapes and gaps are derived
+ * from this list, so adding a row cannot leave the group outline out of step.
  */
 internal val mainSettingsEntries: List<MainSettingsEntry> = buildList {
     SettingsCategory.entries
@@ -123,7 +115,6 @@ internal val mainSettingsEntries: List<MainSettingsEntry> = buildList {
             add(MainSettingsEntry.Category(category))
             if (category == SettingsCategory.PLAYBACK) add(MainSettingsEntry.Destination.LYRICS)
         }
-    add(MainSettingsEntry.Destination.DOWNLOADS)
     add(MainSettingsEntry.Category(SettingsCategory.DEVICE_CAPABILITIES))
     add(MainSettingsEntry.Destination.ACCOUNTS)
     add(MainSettingsEntry.Destination.UPDATES)
