@@ -90,6 +90,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.presentation.components.CollapsibleCommonTopBar
+import com.lostf1sh.pixelplayeross.presentation.components.GlassSurface
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveTopBarContent
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.model.SettingsCategory
@@ -569,12 +570,16 @@ fun ExpressiveCategoryItem(
 
 @Composable
 fun ExpressiveSettingsGroup(content: @Composable () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.Transparent)
+    GlassSurface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp)
     ) {
-        content()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(3.dp)
+        ) {
+            content()
+        }
     }
 }
