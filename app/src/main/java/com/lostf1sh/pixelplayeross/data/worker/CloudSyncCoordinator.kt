@@ -11,14 +11,10 @@ class CloudSyncCoordinator @Inject constructor(
     private val navidromeRepository: NavidromeRepository,
     private val jellyfinRepository: JellyfinRepository
 ) {
-    val needsActiveCloudSync: Boolean
-        get() = navidromeRepository.isLoggedIn &&
-            (System.currentTimeMillis() - navidromeRepository.lastFullSyncTime >= NavidromeRepository.SYNC_THRESHOLD_MS)
+    // Cloud library synchronization is not part of the offline-only player.
+    val needsActiveCloudSync: Boolean = false
 
-    suspend fun syncUnifiedCloudLibraries() {
-        syncNavidromeData()
-        syncJellyfinCache()
-    }
+    suspend fun syncUnifiedCloudLibraries() = Unit
 
     private suspend fun syncNavidromeData() {
         if (!navidromeRepository.isLoggedIn) return
