@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.worker.SyncProgress
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.LyricsRefreshProgress
+import com.lostf1sh.pixelplayeross.presentation.components.GlassSurface
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import androidx.compose.ui.res.vectorResource
 import androidx.core.view.HapticFeedbackConstantsCompat
@@ -423,12 +424,17 @@ fun ExpressiveSettingsGroup(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.Transparent),
+    GlassSurface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp)
     ) {
-        content()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(3.dp)
+        ) {
+            content()
+        }
     }
 }
 
