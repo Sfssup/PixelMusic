@@ -284,4 +284,7 @@
     <string name="musicbrainz_match_score">匹配度：%1$d%%</string>
     <string name="musicbrainz_applied">已保存 MusicBrainz 标识符，并补全了缺失的年份和占位名称。</string>
     <string name="cloud_playlist_download">下载歌单</string>
+    <string name="accounts_offline_title">纯本地音乐播放器</string>
+    <string name="accounts_offline_body">已移除在线音乐账户功能。你的音乐库、歌单、歌词文件和播放数据均保留在本机。</string>
+    <string name="accounts_back">返回</string>
 </resources>
