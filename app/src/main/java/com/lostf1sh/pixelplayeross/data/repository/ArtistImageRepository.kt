@@ -100,36 +100,21 @@ class ArtistImageRepository @Inject constructor(
     suspend fun getArtistImageUrl(artistName: String, artistId: Long): String? {
         if (artistName.isBlank()) return null
         getFolderArtistImageUrl(artistId, artistName)?.let { return it }
-        if (!userPreferencesRepository.externalArtistImagesEnabledFlow.first()) return null
 
-        val normalizedName = artistName.trim().lowercase()
-
-        memoryCache.get(normalizedName)?.let { cachedUrl ->
-            return cachedUrl
-        }
-        
-        if (failedFetches.contains(normalizedName)) {
-            return null
-        }
-
-        val (resolvedArtistId, dbCachedUrl) = withContext(Dispatchers.IO) {
+        // Only retain explicitly local artwork references. Never resolve an artist through Deezer
+        // or load an HTTP(S) image in the offline-only build.
+        val cachedReference = withContext(Dispatchers.IO) {
             val canonicalArtistId = musicDao.getArtistIdByNormalizedName(artistName) ?: artistId
-            val cachedUrl = musicDao.getArtistImageUrl(canonicalArtistId)
+            musicDao.getArtistImageUrl(canonicalArtistId)
                 ?: musicDao.getArtistImageUrlByNormalizedName(artistName)
-            canonicalArtistId to cachedUrl
-        }
-        if (!dbCachedUrl.isNullOrEmpty()) {
-            val upgradedDbUrl = upgradeToHighResDeezerUrl(dbCachedUrl)
-            memoryCache.put(normalizedName, upgradedDbUrl)
-            if (upgradedDbUrl != dbCachedUrl) {
-                withContext(Dispatchers.IO) {
-                    musicDao.updateArtistImageUrl(resolvedArtistId, upgradedDbUrl)
-                }
-            }
-            return upgradedDbUrl
-        }
+        } ?: return null
 
-        return fetchAndCacheArtistImage(artistName, resolvedArtistId, normalizedName)
+        val scheme = android.net.Uri.parse(cachedReference).scheme
+        return when {
+            scheme == "content" || scheme == "file" || scheme == "android.resource" -> cachedReference
+            scheme == null && File(cachedReference).isFile -> cachedReference
+            else -> null
+        }
     }
 
     /**
