@@ -897,17 +897,17 @@ fun PlaylistDetailScreen(
             ) {
                 // Scrolls so Export stays reachable in landscape and at large font scales.
                 Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 12.dp)
-            ) {
-                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 12.dp)
                 ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
                     Text(
                         text = playlistOptionsTitle,
                         style = MaterialTheme.typography.titleLarge,
@@ -968,7 +968,7 @@ fun PlaylistDetailScreen(
                             m3uExportLauncher.launch("$sanitizedName.m3u")
                         }
                     )
-                }
+                    }
                 }
             }
         }
