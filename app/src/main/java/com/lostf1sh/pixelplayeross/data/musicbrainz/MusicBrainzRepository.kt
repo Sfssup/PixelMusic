@@ -12,14 +12,11 @@ class MusicBrainzRepository @Inject constructor(
     private val api: MusicBrainzApiService,
     private val musicDao: MusicDao
 ) {
-    suspend fun search(song: Song): List<MusicBrainzMatch> = withContext(Dispatchers.IO) {
-        api.searchRecording(
-            title = song.title,
-            artist = song.displayArtist,
-            album = song.album,
-            durationMs = song.duration.takeIf { it > 0L }
-        )
-    }
+    /**
+     * Online MusicBrainz lookups are intentionally disabled in this offline-only fork.
+     * Existing local tags remain editable through the normal metadata editor.
+     */
+    suspend fun search(song: Song): List<MusicBrainzMatch> = emptyList()
 
     suspend fun apply(song: Song, match: MusicBrainzMatch) = withContext(Dispatchers.IO) {
         val songId = song.id.toLongOrNull()
