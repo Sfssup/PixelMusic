@@ -288,4 +288,7 @@
     <string name="musicbrainz_match_score">Match confidence: %1$d%%</string>
     <string name="musicbrainz_applied">MusicBrainz identifiers saved. Missing year and placeholder names were enriched.</string>
 
+    <string name="accounts_offline_title">Offline-only player</string>
+    <string name="accounts_offline_body">Online music accounts have been removed. Your library, playlists, lyrics files and playback stay on this device.</string>
+    <string name="accounts_back">Back</string>
 </resources>
