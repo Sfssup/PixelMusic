@@ -9,6 +9,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.MutatorMutex
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -674,7 +676,24 @@ fun UnifiedPlayerSheetV2(
                                 clip = false
                             )
                             .background(
-                                color = playerAreaBackground,
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        playerAreaBackground.copy(alpha = 0.96f),
+                                        MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                                        playerAreaBackground.copy(alpha = 0.92f)
+                                    )
+                                ),
+                                shape = sheetInteractionState.playerShadowShape
+                            )
+                            .border(
+                                width = 1.dp,
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        Color.White.copy(alpha = 0.30f),
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.16f),
+                                        Color.White.copy(alpha = 0.08f)
+                                    )
+                                ),
                                 shape = sheetInteractionState.playerShadowShape
                             )
                             .clip(sheetInteractionState.playerShadowShape)
