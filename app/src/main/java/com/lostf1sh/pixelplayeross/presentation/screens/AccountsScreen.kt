@@ -8,20 +8,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.lostf1sh.pixelplayeross.presentation.components.GlassSurface
 
-@Suppress("UNUSED_PARAMETER")
 @Composable
-fun AccountsScreen(
-    onBackClick: () -> Unit,
-    onOpenNavidromeDashboard: () -> Unit = {},
-    onOpenJellyfinDashboard: () -> Unit = {}
-) {
+fun AccountsScreen(onBackClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
