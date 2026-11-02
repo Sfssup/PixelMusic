@@ -8,8 +8,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Singleton
+data class MusicBrainzMatch(
+    val recordingId: String,
+    val releaseId: String?,
+    val artistId: String?,
+    val title: String,
+    val artist: String,
+    val album: String,
+    val year: Int,
+    val durationMs: Long?,
+    val score: Int,
+    val disambiguation: String?
+)
+
+@Singleton
 class MusicBrainzRepository @Inject constructor(
-    private val api: MusicBrainzApiService,
     private val musicDao: MusicDao
 ) {
     /**

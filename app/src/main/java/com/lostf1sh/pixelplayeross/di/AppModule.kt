@@ -37,7 +37,6 @@ import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.PlaylistPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.dataStore
 import com.lostf1sh.pixelplayeross.data.media.SongMetadataEditor
-import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerApiService
 import com.lostf1sh.pixelplayeross.data.network.lyrics.LrcLibApiService
 import com.lostf1sh.pixelplayeross.data.repository.ArtistImageRepository
 import com.lostf1sh.pixelplayeross.data.repository.AudioBookmarkRepository
@@ -454,39 +453,15 @@ object AppModule {
     }
 
     /**
-     * Provides a Retrofit instance for the Deezer API.
-     */
-    @Provides
-    @Singleton
-    @DeezerRetrofit
-    fun provideDeezerRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("https://api.deezer.com/")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    /**
-     * Provides the Deezer API service.
-     */
-    @Provides
-    @Singleton
-    fun provideDeezerApiService(@DeezerRetrofit retrofit: Retrofit): DeezerApiService {
-        return retrofit.create(DeezerApiService::class.java)
-    }
-
-    /**
      * Provides the artist image repository.
      */
     @Provides
     @Singleton
     fun provideArtistImageRepository(
-        deezerApiService: DeezerApiService,
         musicDao: MusicDao,
         userPreferencesRepository: UserPreferencesRepository,
         @ApplicationContext context: Context
     ): ArtistImageRepository {
-        return ArtistImageRepository(deezerApiService, musicDao, userPreferencesRepository, context)
+        return ArtistImageRepository(musicDao, userPreferencesRepository, context)
     }
 }

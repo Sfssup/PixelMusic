@@ -6,12 +6,9 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.LruCache
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
-import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerApiService
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.utils.AlbumArtUtils
 import com.lostf1sh.pixelplayeross.utils.FolderArtistArtUtils
-import com.lostf1sh.pixelplayeross.utils.NetworkRetryUtils
-import com.lostf1sh.pixelplayeross.utils.isRetryableNetworkError
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
@@ -37,27 +34,20 @@ import timber.log.Timber
 import androidx.core.graphics.scale
 
 /**
- * Resolves local artist portraits before fetching and caching Deezer images.
+ * Resolves artist artwork from local folders, local metadata, and user-selected images.
  * Uses both in-memory LRU cache and Room database for persistent storage.
  */
 @Singleton
 class ArtistImageRepository @Inject constructor(
-    private val deezerApiService: DeezerApiService,
     private val musicDao: MusicDao,
     private val userPreferencesRepository: UserPreferencesRepository,
     @ApplicationContext private val context: Context
 ) {
     companion object {
         private const val TAG = "ArtistImageRepository"
-        private const val CACHE_SIZE = 100
-        // Path/miss records are tiny; keep large artist lists from repeating disk discovery
-        // whenever a single Deezer URL update causes the library to emit again.
         private const val FOLDER_IMAGE_CACHE_SIZE = 4_096
         private const val MAX_ARTIST_DIRECTORIES = 64
         private const val PREFETCH_CONCURRENCY = 3
-        private val deezerSizeRegex = Regex("/\\d{2,4}x\\d{2,4}([\\-.])")
-        private const val NETWORK_RETRY_ATTEMPTS = 3
-        private const val NETWORK_RETRY_INITIAL_DELAY_MS = 500L
         private const val MAX_CUSTOM_IMAGE_SOURCE_BYTES = 24L * 1024L * 1024L
         private const val MAX_CUSTOM_IMAGE_DIMENSION_PX = 16_384
         private const val MAX_CUSTOM_IMAGE_TOTAL_PIXELS = 80_000_000L
@@ -77,22 +67,16 @@ class ArtistImageRepository @Inject constructor(
         }
     }
 
-    private val memoryCache = LruCache<String, String>(CACHE_SIZE)
     private data class FolderImageResult(val path: String?, val revision: Long)
     private val folderImageCache = LruCache<Long, FolderImageResult>(FOLDER_IMAGE_CACHE_SIZE)
     private val folderLookupMutex = Mutex()
     private val _folderArtworkRevision = MutableStateFlow(0L)
     val folderArtworkRevision: StateFlow<Long> = _folderArtworkRevision.asStateFlow()
     
-    private val fetchMutex = Mutex()
-    private val pendingFetches = mutableSetOf<String>()
-    
     private val prefetchSemaphore = Semaphore(PREFETCH_CONCURRENCY)
     
-    private val failedFetches = mutableSetOf<String>()
-
     /**
-     * Get artist image URL, fetching from Deezer if not cached.
+     * Get a locally available artist image URL.
      * @param artistName Name of the artist
      * @param artistId Room database ID of the artist (for caching)
      * @return Image URL or null if not found
@@ -101,8 +85,7 @@ class ArtistImageRepository @Inject constructor(
         if (artistName.isBlank()) return null
         getFolderArtistImageUrl(artistId, artistName)?.let { return it }
 
-        // Only retain explicitly local artwork references. Never resolve an artist through Deezer
-        // or load an HTTP(S) image in the offline-only build.
+        // Only retain explicitly local artwork references; never load remote images.
         val cachedReference = withContext(Dispatchers.IO) {
             val canonicalArtistId = musicDao.getArtistIdByNormalizedName(artistName) ?: artistId
             musicDao.getArtistImageUrl(canonicalArtistId)
@@ -122,113 +105,27 @@ class ArtistImageRepository @Inject constructor(
      * Useful for batch loading when displaying artist lists.
      */
     suspend fun prefetchArtistImages(artists: List<Pair<Long, String>>) = withContext(Dispatchers.IO) {
-        if (!userPreferencesRepository.externalArtistImagesEnabledFlow.first()) return@withContext
-
         artists.chunked(PREFETCH_CONCURRENCY * 4).forEach { chunk ->
             chunk.map { (artistId, artistName) ->
                 async {
                     try {
-                        val normalizedName = artistName.trim().lowercase()
-                        if (memoryCache.get(normalizedName) == null && !failedFetches.contains(normalizedName)) {
-                            prefetchSemaphore.withPermit {
-                                getArtistImageUrl(artistName, artistId)
-                            }
-                        } else {
-                            Timber.tag(TAG).d("Skipping prefetch for $artistName")
+                        prefetchSemaphore.withPermit {
+                            getArtistImageUrl(artistName, artistId)
                         }
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
-                        Timber.tag(TAG).w("Failed to prefetch image for $artistName: ${e.message}")
+                        Timber.tag(TAG).w("Failed to prefetch local image for $artistName: ${e.message}")
                     }
                 }
             }.awaitAll()
         }
     }
     
-    private suspend fun fetchAndCacheArtistImage(
-        artistName: String,
-        artistId: Long,
-        normalizedName: String
-    ): String? {
-        fetchMutex.withLock {
-            if (pendingFetches.contains(normalizedName)) {
-                return null
-            }
-            pendingFetches.add(normalizedName)
-        }
-
-        return try {
-            withContext(Dispatchers.IO) {
-                val response = withNetworkRetry("deezer_search:$artistName") {
-                    deezerApiService.searchArtist(artistName, limit = 1)
-                }
-                val deezerArtist = response.data.firstOrNull()
-
-                if (deezerArtist != null) {
-                    val imageUrl = (
-                        deezerArtist.pictureXl
-                            ?: deezerArtist.pictureBig
-                            ?: deezerArtist.pictureMedium
-                            ?: deezerArtist.picture
-                        )?.let(::upgradeToHighResDeezerUrl)
-
-                    if (!imageUrl.isNullOrEmpty()) {
-                        memoryCache.put(normalizedName, imageUrl)
-                        
-                        musicDao.updateArtistImageUrl(artistId, imageUrl)
-
-                        Timber.tag(TAG).d("Fetched and cached image for $artistName: $imageUrl")
-                        imageUrl
-                    } else {
-                        null
-                    }
-                } else {
-                    Timber.tag(TAG).d("No Deezer artist found for: $artistName")
-                    failedFetches.add(normalizedName)
-                    null
-                }
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.tag(TAG).e("Error fetching artist image for $artistName: ${e.message}")
-            if(e !is java.net.SocketTimeoutException) {
-                failedFetches.add(normalizedName)
-            }
-            null
-        } finally {
-            fetchMutex.withLock {
-                pendingFetches.remove(normalizedName)
-            }
-        }
-    }
-
-    private suspend fun <T> withNetworkRetry(
-        operationName: String,
-        maxAttempts: Int = NETWORK_RETRY_ATTEMPTS,
-        initialDelayMs: Long = NETWORK_RETRY_INITIAL_DELAY_MS,
-        block: suspend () -> T
-    ): T {
-        return NetworkRetryUtils.withNetworkRetry(
-            operationName = operationName,
-            maxAttempts = maxAttempts,
-            initialDelayMs = initialDelayMs,
-            shouldRetry = { throwable -> throwable.isRetryableNetworkError() },
-            onRetry = { attempt, attempts, throwable ->
-                Timber.tag(TAG)
-                    .d("Retrying $operationName after failure ($attempt/$attempts): ${throwable.message}")
-            },
-            block = block
-        )
-    }
-    
     /**
      * Clear all cached images. Useful for debugging or forced refresh.
      */
     fun clearCache() {
-        memoryCache.evictAll()
-        failedFetches.clear()
         folderImageCache.evictAll()
         _folderArtworkRevision.update { it + 1 }
     }
@@ -271,7 +168,7 @@ class ArtistImageRepository @Inject constructor(
      * Returns the effective image URL for an artist:
      * - If a custom (user-set) image exists in DB → returns that path
      * - Otherwise prefers an opted-in folder portrait when available
-     * - Otherwise falls back to the Deezer URL (fetching from API if needed)
+     * - Otherwise falls back to a local folder portrait or locally stored image
      */
     suspend fun getEffectiveArtistImageUrl(artistId: Long, artistName: String): String? {
         val customUri = withContext(Dispatchers.IO) { musicDao.getArtistCustomImage(artistId) }
@@ -393,7 +290,7 @@ class ArtistImageRepository @Inject constructor(
     }
 
     /**
-     * Removes the user's custom artist image, reverting to the Deezer URL.
+     * Removes the user's custom artist image, reverting to local artwork.
      *
      * @param context Application context
      * @param artistId The artist's database row ID
@@ -414,8 +311,4 @@ class ArtistImageRepository @Inject constructor(
         }
     }
 
-    private fun upgradeToHighResDeezerUrl(url: String): String {
-        if (!url.contains("dzcdn.net/images/artist")) return url
-        return deezerSizeRegex.replace(url, "/1000x1000$1")
-    }
 }
