@@ -225,6 +225,24 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
             "DELETE FROM song_artist_cross_ref WHERE song_id IN " +
                 "(SELECT id FROM songs WHERE source_type IN (5, 6))"
         )
+        db.execSQL(
+            "DELETE FROM song_engagements WHERE song_id IN " +
+                "(SELECT CAST(id AS TEXT) FROM songs WHERE source_type IN (5, 6))"
+        )
+        db.execSQL(
+            "DELETE FROM audio_bookmarks WHERE song_id IN " +
+                "(SELECT CAST(id AS TEXT) FROM songs WHERE source_type IN (5, 6))"
+        )
+        db.execSQL(
+            "DELETE FROM transition_rules WHERE " +
+                "fromTrackId IN (SELECT CAST(id AS TEXT) FROM songs WHERE source_type IN (5, 6)) OR " +
+                "toTrackId IN (SELECT CAST(id AS TEXT) FROM songs WHERE source_type IN (5, 6)) OR " +
+                "playlistId LIKE 'navidrome_playlist:%' OR playlistId LIKE 'jellyfin_playlist:%'"
+        )
+        db.execSQL(
+            "DELETE FROM album_art_themes WHERE " +
+                "albumArtUriString LIKE 'navidrome:%' OR albumArtUriString LIKE 'jellyfin:%'"
+        )
         db.execSQL("DELETE FROM songs WHERE source_type IN (5, 6)")
         db.execSQL(
             "DELETE FROM albums WHERE " +
