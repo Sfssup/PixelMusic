@@ -262,13 +262,13 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         db.execSQL("DELETE FROM songs WHERE source_type IN (5, 6)")
         db.execSQL(
             "DELETE FROM albums WHERE " +
-                "(id >= 10000000000000 AND id < 11000000000000) OR " +
-                "(id >= 13000000000000 AND id < 14000000000000)"
+                "(id <= -10000000000000 AND id > -11000000000000) OR " +
+                "(id <= -13000000000000 AND id > -14000000000000)"
         )
         db.execSQL(
             "DELETE FROM artists WHERE " +
-                "(id >= 11000000000000 AND id < 12000000000000) OR " +
-                "(id >= 14000000000000 AND id < 15000000000000)"
+                "(id <= -11000000000000 AND id > -12000000000000) OR " +
+                "(id <= -14000000000000 AND id > -15000000000000)"
         )
         db.execSQL(
             "DELETE FROM playlists WHERE id LIKE 'navidrome_playlist:%' OR id LIKE 'jellyfin_playlist:%'"
