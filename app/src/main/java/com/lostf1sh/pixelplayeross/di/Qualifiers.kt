@@ -30,9 +30,3 @@ annotation class BackupGson
 @Retention(AnnotationRetention.BINARY)
 annotation class AppScope
 
-/**
- * Qualifier for ListenBrainz Retrofit instance.
- */
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class ListenBrainzRetrofit

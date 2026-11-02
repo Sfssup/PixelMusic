@@ -22,15 +22,14 @@ import com.lostf1sh.pixelplayeross.data.database.EngagementDao
 import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.LyricsDao
 import com.lostf1sh.pixelplayeross.data.database.LocalPlaylistDao
-import com.lostf1sh.pixelplayeross.data.database.ListenBrainzDao
 import com.lostf1sh.pixelplayeross.data.database.AudioBookmarkDao
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_1_2
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_2_3
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_3_4
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_4_5
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_5_6
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_6_7
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
-import com.lostf1sh.pixelplayeross.data.database.OfflineTrackDao
 import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
 import com.lostf1sh.pixelplayeross.data.database.TransitionDao
@@ -139,6 +138,7 @@ object AppModule {
                 MIGRATION_3_4,
                 MIGRATION_4_5,
                 MIGRATION_5_6,
+                MIGRATION_6_7,
             )
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
 
@@ -199,32 +199,8 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideNavidromeDao(database: PixelPlayerDatabase): com.lostf1sh.pixelplayeross.data.database.NavidromeDao {
-        return database.navidromeDao()
-    }
-    
-    @Singleton
-    @Provides
-    fun provideJellyfinDao(database: PixelPlayerDatabase): com.lostf1sh.pixelplayeross.data.database.JellyfinDao {
-        return database.jellyfinDao()
-    }
-
-    @Singleton
-    @Provides
-    fun provideListenBrainzDao(database: PixelPlayerDatabase): ListenBrainzDao {
-        return database.listenBrainzDao()
-    }
-
-    @Singleton
-    @Provides
     fun provideAudioBookmarkDao(database: PixelPlayerDatabase): AudioBookmarkDao {
         return database.audioBookmarkDao()
-    }
-
-    @Singleton
-    @Provides
-    fun provideOfflineTrackDao(database: PixelPlayerDatabase): OfflineTrackDao {
-        return database.offlineTrackDao()
     }
 
     @Provides

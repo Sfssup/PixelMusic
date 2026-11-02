@@ -199,3 +199,16 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         )
     }
 }
+
+
+/** v6 -> v7: remove cloud-provider caches, scrobble queue, and cloud offline downloads. */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `navidrome_playlists`")
+        db.execSQL("DROP TABLE IF EXISTS `navidrome_songs`")
+        db.execSQL("DROP TABLE IF EXISTS `jellyfin_playlists`")
+        db.execSQL("DROP TABLE IF EXISTS `jellyfin_songs`")
+        db.execSQL("DROP TABLE IF EXISTS `listenbrainz_pending_listens`")
+        db.execSQL("DROP TABLE IF EXISTS `offline_tracks`")
+    }
+}

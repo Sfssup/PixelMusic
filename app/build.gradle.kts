@@ -258,8 +258,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.snakeyaml)
     implementation(libs.kotlinx.collections.immutable)
-    implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.cio)
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.security.crypto)
