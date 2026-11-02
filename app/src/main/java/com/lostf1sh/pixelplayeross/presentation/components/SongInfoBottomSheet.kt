@@ -614,7 +614,6 @@ fun SongInfoBottomSheet(
                                                     onClick = { showTonePickerDialog = true },
                                                 )
                                             }
-                                        }
 
                                         item {
                                             Spacer(Modifier.height(80.dp))
