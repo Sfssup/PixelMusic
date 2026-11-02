@@ -243,6 +243,22 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
             "DELETE FROM album_art_themes WHERE " +
                 "albumArtUriString LIKE 'navidrome:%' OR albumArtUriString LIKE 'jellyfin:%'"
         )
+        // Remove remote artwork URLs left by the old online metadata providers.
+        db.execSQL(
+            "UPDATE artists SET image_url = NULL WHERE image_url LIKE 'http://%' OR image_url LIKE 'https://%'"
+        )
+        db.execSQL(
+            "UPDATE artists SET custom_image_uri = NULL WHERE custom_image_uri LIKE 'http://%' OR custom_image_uri LIKE 'https://%'"
+        )
+        db.execSQL(
+            "UPDATE albums SET album_art_uri_string = NULL WHERE album_art_uri_string LIKE 'http://%' OR album_art_uri_string LIKE 'https://%'"
+        )
+        db.execSQL(
+            "UPDATE songs SET album_art_uri_string = NULL WHERE album_art_uri_string LIKE 'http://%' OR album_art_uri_string LIKE 'https://%'"
+        )
+        db.execSQL(
+            "DELETE FROM album_art_themes WHERE albumArtUriString LIKE 'http:%' OR albumArtUriString LIKE 'https:%'"
+        )
         db.execSQL("DELETE FROM songs WHERE source_type IN (5, 6)")
         db.execSQL(
             "DELETE FROM albums WHERE " +
