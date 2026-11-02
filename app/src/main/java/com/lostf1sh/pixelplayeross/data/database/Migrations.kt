@@ -204,6 +204,43 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
 /** v6 -> v7: remove cloud-provider caches, scrobble queue, and cloud offline downloads. */
 val MIGRATION_6_7 = object : Migration(6, 7) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        // Remove provider-backed rows that were stored in the shared local-library tables.
+        db.execSQL(
+            "DELETE FROM playlist_songs WHERE playlist_id IN " +
+                "(SELECT id FROM playlists WHERE id LIKE 'navidrome_playlist:%' OR id LIKE 'jellyfin_playlist:%')"
+        )
+        db.execSQL(
+            "DELETE FROM playlist_songs WHERE song_id IN " +
+                "(SELECT CAST(id AS TEXT) FROM songs WHERE source_type IN (5, 6))"
+        )
+        db.execSQL(
+            "DELETE FROM favorites WHERE songId IN " +
+                "(SELECT id FROM songs WHERE source_type IN (5, 6))"
+        )
+        db.execSQL(
+            "DELETE FROM lyrics WHERE songId IN " +
+                "(SELECT id FROM songs WHERE source_type IN (5, 6))"
+        )
+        db.execSQL(
+            "DELETE FROM song_artist_cross_ref WHERE song_id IN " +
+                "(SELECT id FROM songs WHERE source_type IN (5, 6))"
+        )
+        db.execSQL("DELETE FROM songs WHERE source_type IN (5, 6)")
+        db.execSQL(
+            "DELETE FROM albums WHERE " +
+                "(id >= 10000000000000 AND id < 11000000000000) OR " +
+                "(id >= 13000000000000 AND id < 14000000000000)"
+        )
+        db.execSQL(
+            "DELETE FROM artists WHERE " +
+                "(id >= 11000000000000 AND id < 12000000000000) OR " +
+                "(id >= 14000000000000 AND id < 15000000000000)"
+        )
+        db.execSQL(
+            "DELETE FROM playlists WHERE id LIKE 'navidrome_playlist:%' OR id LIKE 'jellyfin_playlist:%'"
+        )
+
+        // Drop cloud provider caches and background-service queues.
         db.execSQL("DROP TABLE IF EXISTS `navidrome_playlists`")
         db.execSQL("DROP TABLE IF EXISTS `navidrome_songs`")
         db.execSQL("DROP TABLE IF EXISTS `jellyfin_playlists`")
