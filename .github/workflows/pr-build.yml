@@ -85,28 +85,27 @@ jobs:
             echo "keyPassword=$KEYSTORE_PASSWORD"
           } > keystore.properties
 
-      - name: Build PR release APKs
+      - name: Build arm64 release APK
         run: >
           ./gradlew :app:assembleRelease
           -Ppixelplayer.enableAbiSplits=true
           -PAPP_VERSION_NAME=${{ steps.version.outputs.name }}
 
-      - name: Verify and rename split APKs
+      - name: Verify and rename arm64 APK
         run: |
           BUILD_TOOLS_VERSION="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           mkdir -p pr-apks
-          for abi in arm64-v8a armeabi-v7a; do
-            apk="app/build/outputs/apk/release/app-$abi-release.apk"
-            "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt2" dump badging "$apk" >/dev/null
-            "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner" verify --verbose "$apk"
-            cp "$apk" "pr-apks/PixelPlayerOSS-${{ steps.version.outputs.name }}-$abi.apk"
-          done
+          apk="app/build/outputs/apk/release/app-arm64-v8a-release.apk"
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt2" dump badging "$apk" >/dev/null
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner" verify --verbose "$apk"
+          mkdir -p pr-apks
+          cp "$apk" "pr-apks/PixelPlayerOSS-${{ steps.version.outputs.name }}-arm64-v8a.apk"
 
-      - name: Upload PR APK artifacts
+      - name: Upload arm64 APK artifact
         id: upload
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: PixelPlayerOSS-pr-${{ steps.version.outputs.short-sha }}
+          name: PixelPlayerOSS-pr-${{ steps.version.outputs.short-sha }}-arm64
           path: pr-apks/*.apk
           if-no-files-found: error
           compression-level: 0
@@ -115,12 +114,12 @@ jobs:
       - name: Summarize how to install
         run: |
           {
-            echo "## Test APK"
+            echo "## Test APK (arm64-v8a only)"
             echo
             echo "Version \`${{ steps.version.outputs.name }}\` built from \`${{ steps.version.outputs.short-sha }}\`."
             echo
             echo "Download it from the [run artifacts](${{ steps.upload.outputs.artifact-url }}), unzip, and install"
-            echo "the \`arm64-v8a\` APK on any phone from the last several years (\`armeabi-v7a\` for older 32-bit devices)."
+            echo "Install the arm64-v8a APK on your device."
             echo
             echo "Artifacts expire after 14 days. Builds from forks are signed with a throwaway key, so"
             echo "uninstall the existing app first if the installer complains about the signature."
