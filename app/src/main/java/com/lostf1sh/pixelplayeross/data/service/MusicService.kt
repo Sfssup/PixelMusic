@@ -1393,9 +1393,7 @@ class MusicService : MediaSessionService() {
             val mediaItem = mediaItemAt(index)
             val metadata = mediaItem.mediaMetadata
             val playerUri = mediaItem.localConfiguration?.uri?.toString()
-            val originalContentUri = metadata.extras
-                ?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)
-            // Persist the playable local URI so queue restoration remains independent of cloud providers.
+            // Persist the playable local URI for queue restoration.
             val uri = playerUri
             if (mediaItem.mediaId.isBlank() || uri.isNullOrBlank()) continue
 
@@ -1450,12 +1448,6 @@ class MusicService : MediaSessionService() {
         }
 
         val preparedItems = restoredItems.toMutableList()
-        preparedItems.getOrNull(resolvedIndex)?.let { currentItem ->
-            val resolvedCurrentItem = runCatching { engine.resolveMediaItem(currentItem) }.getOrNull()
-            if (resolvedCurrentItem != null && resolvedCurrentItem != currentItem) {
-                preparedItems[resolvedIndex] = resolvedCurrentItem
-            }
-        }
 
         withContext(Dispatchers.Main.immediate) {
             val player = engine.masterPlayer
