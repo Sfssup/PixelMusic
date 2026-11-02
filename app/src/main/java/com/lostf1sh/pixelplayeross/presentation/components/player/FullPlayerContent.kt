@@ -24,6 +24,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -740,7 +741,8 @@ fun FullPlayerContent(
                                 modifier = Modifier
                                     .size(42.dp)
                                     .clip(CircleShape)
-                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .background(playerOnAccentColor.copy(alpha = 0.48f))
+                                    .border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape)
                                     .clickable(onClick = onCollapse),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -764,7 +766,8 @@ fun FullPlayerContent(
                                 modifier = Modifier
                                     .size(42.dp)
                                     .clip(CircleShape)
-                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .background(playerOnAccentColor.copy(alpha = 0.48f))
+                                    .border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape)
                                     .clickable { showAudioOutputSheet = true },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -783,7 +786,8 @@ fun FullPlayerContent(
                                 modifier = Modifier
                                     .size(42.dp)
                                     .clip(CircleShape)
-                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .background(playerOnAccentColor.copy(alpha = 0.48f))
+                                    .border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape)
                                     .clickable { showSaveBookmarkDialog = true },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -797,7 +801,8 @@ fun FullPlayerContent(
                                 modifier = Modifier
                                     .size(42.dp)
                                     .clip(CircleShape)
-                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .background(playerOnAccentColor.copy(alpha = 0.48f))
+                                    .border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape)
                                     .clickable {
                                         showSongInfoBottomSheet = true
                                         onShowQueueClicked()
