@@ -604,7 +604,6 @@ fun SongInfoBottomSheet(
                                                     )
                                                 }
                                             }
-                                        }
 
                                             item {
                                                 RingtoneActionButton(
@@ -711,7 +710,7 @@ fun SongInfoBottomSheet(
                 PrimaryTabRow(
                     selectedTabIndex = pagerState.currentPage,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
+                        .align(Alignment.CenterHorizontally)
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
