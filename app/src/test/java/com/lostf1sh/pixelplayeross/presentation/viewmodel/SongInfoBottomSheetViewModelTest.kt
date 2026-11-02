@@ -10,7 +10,6 @@ class SongInfoBottomSheetViewModelTest {
 
     private val viewModel = SongInfoBottomSheetViewModel(
         musicDao = mockk(relaxed = true),
-        musicBrainzRepository = mockk(relaxed = true),
         appContext = mockk(relaxed = true),
     )
 

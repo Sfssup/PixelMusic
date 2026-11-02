@@ -18,8 +18,6 @@ import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.toArtist
 import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.Song
-import com.lostf1sh.pixelplayeross.data.musicbrainz.MusicBrainzMatch
-import com.lostf1sh.pixelplayeross.data.musicbrainz.MusicBrainzRepository
 import com.lostf1sh.pixelplayeross.utils.AudioMeta
 import com.lostf1sh.pixelplayeross.utils.AudioMetaUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -41,7 +39,6 @@ import kotlinx.collections.immutable.toImmutableList
 @HiltViewModel
 class SongInfoBottomSheetViewModel @Inject constructor(
     private val musicDao: MusicDao,
-    private val musicBrainzRepository: MusicBrainzRepository,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
