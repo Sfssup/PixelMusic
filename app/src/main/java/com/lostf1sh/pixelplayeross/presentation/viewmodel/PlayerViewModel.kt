@@ -3160,7 +3160,7 @@ class PlayerViewModel @Inject constructor(
         playlistId: String? = null,
     ): MediaItem {
         val mediaItem = buildPlaybackMediaItem(song, playlistId)
-        return dualPlayerEngine.resolveMediaItem(mediaItem)
+        return mediaItem
     }
 
 
