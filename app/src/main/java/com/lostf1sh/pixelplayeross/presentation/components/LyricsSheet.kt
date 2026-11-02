@@ -67,6 +67,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
@@ -726,10 +727,28 @@ fun LyricsSheet(
                     }
                 )
             },
-        containerColor = containerColor,
+        containerColor = Color.Transparent,
         contentColor = contentColor,
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
+            // Reuse the current local album artwork as a soft, full-screen backdrop.
+            // The translucent tint preserves lyric contrast while allowing the artwork
+            // to show through as a restrained glassmorphism effect.
+            SmartImage(
+                model = currentSong?.albumArtUriString ?: R.drawable.rounded_album_24,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(42.dp)
+                    .graphicsLayer { scaleX = 1.12f; scaleY = 1.12f },
+                contentScale = ContentScale.Crop,
+                alpha = 0.48f
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(containerColor.copy(alpha = 0.68f))
+            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -968,7 +987,7 @@ fun LyricsSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(containerColor)
+                        .background(containerColor.copy(alpha = 0.78f))
                         .padding(bottom = paddingValues.calculateBottomPadding() + 10.dp, end = 16.dp, start = 16.dp)
                         .pointerInput(Unit) {
                             awaitPointerEventScope {
