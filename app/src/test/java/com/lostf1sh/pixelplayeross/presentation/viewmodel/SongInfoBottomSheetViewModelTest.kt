@@ -10,7 +10,6 @@ class SongInfoBottomSheetViewModelTest {
 
     private val viewModel = SongInfoBottomSheetViewModel(
         musicDao = mockk(relaxed = true),
-        cloudOfflineRepository = mockk(relaxed = true),
         musicBrainzRepository = mockk(relaxed = true),
         appContext = mockk(relaxed = true),
     )
@@ -23,25 +22,6 @@ class SongInfoBottomSheetViewModelTest {
 
         assertThat(info.labelRes).isEqualTo(R.string.song_info_label_path)
         assertThat(info.value).isEqualTo("/storage/emulated/0/Music/song.flac")
-        assertThat(info.isCloud).isFalse()
-    }
-
-    @Test
-    fun `navidrome song shows the provider name under the localized provider label`() {
-        val info = viewModel.getSongLocationInfo(song(path = "", contentUri = "navidrome://song-1"))
-
-        assertThat(info.labelRes).isEqualTo(R.string.song_info_label_provider)
-        assertThat(info.value).isEqualTo("Navidrome")
-        assertThat(info.isCloud).isTrue()
-    }
-
-    @Test
-    fun `jellyfin song shows the provider name under the localized provider label`() {
-        val info = viewModel.getSongLocationInfo(song(path = "", contentUri = "jellyfin://item-1"))
-
-        assertThat(info.labelRes).isEqualTo(R.string.song_info_label_provider)
-        assertThat(info.value).isEqualTo("Jellyfin")
-        assertThat(info.isCloud).isTrue()
     }
 
     private fun song(path: String, contentUri: String) = Song(

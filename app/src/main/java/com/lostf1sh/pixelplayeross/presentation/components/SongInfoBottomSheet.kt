@@ -35,9 +35,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.AudioFile
-import androidx.compose.material.icons.rounded.Cloud
-import androidx.compose.material.icons.rounded.CloudDownload
-import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MusicNote
@@ -48,7 +45,6 @@ import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.rounded.TravelExplore
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.*
@@ -78,8 +74,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
-import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
-import com.lostf1sh.pixelplayeross.data.offline.OfflineDownloadStatus
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.AutoSizingTextToFill
 import com.lostf1sh.pixelplayeross.utils.formatDuration
 import com.lostf1sh.pixelplayeross.utils.shapes.RoundedStarShape
@@ -142,9 +136,6 @@ fun SongInfoBottomSheet(
     var pendingTonePermissionTarget by remember { mutableStateOf<ToneTarget?>(null) }
     val audioMeta by songInfoViewModel.audioMeta.collectAsStateWithLifecycle()
     val resolvedArtists by songInfoViewModel.resolvedArtists.collectAsStateWithLifecycle()
-    val offlineDownload by songInfoViewModel.offlineDownload.collectAsStateWithLifecycle()
-    val musicBrainzState by songInfoViewModel.musicBrainzState.collectAsStateWithLifecycle()
-    val isCloudSong = remember(song.contentUriString) { CloudOfflineRepository.isCloudSong(song) }
     val ringtonePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
@@ -295,20 +286,8 @@ fun SongInfoBottomSheet(
     }
 
     LaunchedEffect(song.id) {
-        songInfoViewModel.bindSong(song)
         songInfoViewModel.loadAudioMeta(song)
         songInfoViewModel.loadArtistsForSong(song)
-    }
-
-    LaunchedEffect(musicBrainzState) {
-        if (musicBrainzState is SongInfoBottomSheetViewModel.MusicBrainzUiState.Applied) {
-            Toast.makeText(
-                context,
-                context.getString(R.string.musicbrainz_applied),
-                Toast.LENGTH_LONG
-            ).show()
-            songInfoViewModel.dismissMusicBrainz()
-        }
     }
 
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
@@ -597,61 +576,29 @@ fun SongInfoBottomSheet(
                                                     modifier = Modifier
                                                         .weight(0.5f)
                                                         .heightIn(min = 66.dp),
-                                                    colors = if (isCloudSong) {
-                                                        ButtonDefaults.filledTonalButtonColors(
-                                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                        )
-                                                    } else {
-                                                        ButtonDefaults.filledTonalButtonColors(
-                                                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                                                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                                        )
-                                                    },
+                                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                                    ),
                                                     shape = CircleShape,
                                                     onClick = {
-                                                        if (isCloudSong) {
-                                                            when (offlineDownload?.status) {
-                                                                OfflineDownloadStatus.FAILED ->
-                                                                    songInfoViewModel.retryOfflineDownload(song)
-                                                                else -> songInfoViewModel.toggleOfflineDownload(song)
-                                                            }
-                                                        } else {
-                                                            (context as? Activity)?.let { activity ->
-                                                                onDeleteFromDevice(activity, song) { result ->
-                                                                    if (result) {
-                                                                        removeFromListTrigger()
-                                                                        onDismiss()
-                                                                    }
+                                                        (context as? Activity)?.let { activity ->
+                                                            onDeleteFromDevice(activity, song) { result ->
+                                                                if (result) {
+                                                                    removeFromListTrigger()
+                                                                    onDismiss()
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 ) {
                                                     Icon(
-                                                        when (offlineDownload?.status) {
-                                                            OfflineDownloadStatus.COMPLETE -> Icons.Rounded.CloudDone
-                                                            else -> if (isCloudSong) Icons.Rounded.CloudDownload else Icons.Default.DeleteForever
-                                                        },
-                                                        contentDescription = stringResource(
-                                                            if (isCloudSong) R.string.cloud_download_action else R.string.delete_action
-                                                        )
+                                                        Icons.Default.DeleteForever,
+                                                        contentDescription = stringResource(R.string.delete_action)
                                                     )
                                                     Spacer(Modifier.width(8.dp))
                                                     Text(
-                                                        when (offlineDownload?.status) {
-                                                            OfflineDownloadStatus.QUEUED -> stringResource(R.string.cloud_download_queued)
-                                                            OfflineDownloadStatus.DOWNLOADING -> offlineDownload?.progress
-                                                                ?.let { stringResource(R.string.cloud_download_progress, (it * 100).toInt()) }
-                                                                ?: stringResource(R.string.cloud_downloading)
-                                                            OfflineDownloadStatus.COMPLETE -> stringResource(R.string.cloud_remove_download)
-                                                            OfflineDownloadStatus.FAILED -> stringResource(R.string.cloud_download_retry)
-                                                            null -> if (isCloudSong) {
-                                                                stringResource(R.string.cloud_download_action)
-                                                            } else {
-                                                                stringResource(R.string.delete_action)
-                                                            }
-                                                        },
+                                                        stringResource(R.string.delete_action),
                                                         maxLines = 1,
                                                         overflow = TextOverflow.Ellipsis
                                                     )
@@ -659,7 +606,6 @@ fun SongInfoBottomSheet(
                                             }
                                         }
 
-                                        if (!isCloudSong) {
                                             item {
                                                 RingtoneActionButton(
                                                     modifier = Modifier
@@ -668,23 +614,6 @@ fun SongInfoBottomSheet(
                                                     showText = true,
                                                     onClick = { showTonePickerDialog = true },
                                                 )
-                                            }
-                                        }
-
-                                        item {
-                                            FilledTonalButton(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .heightIn(min = 66.dp),
-                                                shape = CircleShape,
-                                                onClick = { songInfoViewModel.searchMusicBrainz(song) }
-                                            ) {
-                                                Icon(
-                                                    Icons.Rounded.TravelExplore,
-                                                    contentDescription = stringResource(R.string.musicbrainz_lookup)
-                                                )
-                                                Spacer(Modifier.width(10.dp))
-                                                Text(stringResource(R.string.musicbrainz_lookup))
                                             }
                                         }
 
@@ -763,14 +692,8 @@ fun SongInfoBottomSheet(
                                                 SongInfoSegmentedListItem(
                                                     headline = stringResource(songLocationInfo.labelRes),
                                                     supporting = songLocationInfo.value,
-                                                    icon = if (songLocationInfo.isCloud) Icons.Rounded.Cloud else Icons.Rounded.AudioFile,
-                                                    iconDescription = stringResource(
-                                                        if (songLocationInfo.isCloud) {
-                                                            R.string.cd_provider_icon
-                                                        } else {
-                                                            R.string.cd_file_icon
-                                                        }
-                                                    ),
+                                                    icon = Icons.Rounded.AudioFile,
+                                                    iconDescription = stringResource(R.string.cd_file_icon),
                                                     shape = infoSegmentItemShape,
                                                 )
                                             }
