@@ -710,7 +710,7 @@ fun SongInfoBottomSheet(
                 PrimaryTabRow(
                     selectedTabIndex = pagerState.currentPage,
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
+                        .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
