@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnosticsController
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import java.io.File
 
 @HiltAndroidApp
 class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.Provider {
@@ -110,6 +112,7 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
 
     override fun onCreate() {
         super.onCreate()
+        clearRemovedOnlineServiceState()
 
         if (BuildConfig.BUILD_TYPE != "benchmark") {
             CrashHandler.install(this)
@@ -160,6 +163,31 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
                 folderArtworkSettingsCoordinator.get().reconcile()
             }
         }
+    }
+
+    /**
+     * Remove persisted state and pending work from the cloud integrations removed by this fork.
+     * This runs on upgrade as well as fresh install so old credentials and download jobs cannot
+     * survive the transition to the local-only player.
+     */
+    private fun clearRemovedOnlineServiceState() {
+        listOf(
+            "navidrome_prefs",
+            "navidrome_prefs_plain",
+            "jellyfin_prefs",
+            "jellyfin_prefs_plain",
+            "listenbrainz_prefs",
+            "listenbrainz_prefs_plain"
+        ).forEach(::deleteSharedPreferences)
+
+        WorkManager.getInstance(this).apply {
+            cancelUniqueWork("navidrome_sync_all")
+            cancelUniqueWork("jellyfin_sync_all")
+            cancelUniqueWork("listenbrainz_scrobble_flush")
+            cancelAllWorkByTag("cloud_track_download")
+        }
+
+        File(filesDir, "cloud_downloads").deleteRecursively()
     }
 
     override fun newImageLoader(): ImageLoader {
